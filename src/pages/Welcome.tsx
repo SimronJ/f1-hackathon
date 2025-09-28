@@ -1,23 +1,41 @@
-import { useState } from 'react';
-import { Role, Interest } from '@/lib/types';
-import { RESOURCES_CATALOG, generateBio, generateIntroMessage } from '@/lib/mock';
-import { useStore } from '@/lib/store';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { InterestChips } from '@/components/InterestChips';
-import { StarterKitCard } from '@/components/StarterKitCard';
-import { ArrowRight, Sparkles } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Role, Interest, Resource } from "@/lib/types";
+import {
+  RESOURCES_CATALOG,
+  generateBio,
+  generateIntroMessage,
+} from "@/lib/mock";
+import { aiService } from "@/lib/ai";
+import { useStore } from "@/lib/store";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { InterestChips } from "@/components/InterestChips";
+import { StarterKitCard } from "@/components/StarterKitCard";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
-const ROLES: Role[] = ['Student', 'Engineer', 'Founder', 'Designer', 'Product'];
-const INTERESTS: Interest[] = ['AI', 'Python', 'Growth', 'Design', 'Product', 'Data'];
+const ROLES: Role[] = ["Student", "Engineer", "Founder", "Designer", "Product"];
+const INTERESTS: Interest[] = [
+  "AI",
+  "Python",
+  "Growth",
+  "Design",
+  "Product",
+  "Data",
+];
 
 export default function Welcome() {
-  const [name, setName] = useState('');
-  const [role, setRole] = useState<Role | ''>('');
+  const [name, setName] = useState("");
+  const [role, setRole] = useState<Role | "">("");
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,16 +43,16 @@ export default function Welcome() {
   const { setProfile, setStarterKit, postMessage } = useStore();
 
   const handleInterestToggle = (interest: Interest) => {
-    setSelectedInterests(prev =>
+    setSelectedInterests((prev) =>
       prev.includes(interest)
-        ? prev.filter(i => i !== interest)
+        ? prev.filter((i) => i !== interest)
         : [...prev, interest]
     );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim() || !role || selectedInterests.length === 0) {
       toast({
         title: "Please fill all fields",
@@ -47,33 +65,63 @@ export default function Welcome() {
     setIsLoading(true);
 
     try {
-      // Generate profile and bio
-      const bio = generateBio(name.trim(), role, selectedInterests);
-      const profile = { name: name.trim(), role, interests: selectedInterests, bio };
-
-      // Build starter kit from catalog
-      const allResources: any[] = [];
-      const allChannels: string[] = [];
-      const allPeople: string[] = [];
-
-      selectedInterests.forEach(interest => {
-        const catalog = RESOURCES_CATALOG[interest];
-        allResources.push(...catalog.resources.slice(0, 1)); // 1 resource per interest
-        allChannels.push(...catalog.channels.slice(0, 1)); // 1 channel per interest
-        allPeople.push(...catalog.people.slice(0, 1)); // 1 person per interest
-      });
-
-      const starterKit = {
-        profile,
-        resources: allResources.slice(0, 3), // Top 3 resources
-        channels: [...new Set(allChannels)].slice(0, 3), // Top 3 unique channels
-        people: [...new Set(allPeople)].slice(0, 3) // Top 3 unique people
+      // Generate profile and bio (use AI welcome_bot as bio if available)
+      const aiWelcome = await aiService.welcomeBot(
+        name.trim(),
+        role as Role,
+        selectedInterests
+      );
+      const bio =
+        aiWelcome || generateBio(name.trim(), role, selectedInterests);
+      const profile = {
+        name: name.trim(),
+        role,
+        interests: selectedInterests,
+        bio,
       };
+      // Try AI recommendations in parallel
+      const [aiResources, aiChannels, aiPeople] = await Promise.all([
+        aiService.getResources(role as Role, selectedInterests, 3),
+        aiService.getChannels(role as Role, selectedInterests, 3),
+        aiService.getPeople(role as Role, selectedInterests, 3),
+      ]);
+
+      let resources: Resource[] = [];
+      let channels: string[] = [];
+      let people: string[] = [];
+
+      if (aiResources.length || aiChannels.length || aiPeople.length) {
+        resources = aiResources.slice(0, 3).map((r) => ({
+          title: r.name,
+          url: r.link,
+          description: r.topics?.join(", "),
+        }));
+        channels = aiChannels.slice(0, 3);
+        people = aiPeople.slice(0, 3).map((p) => `${p.name} (${p.role})`);
+      } else {
+        // Fallback to static catalog
+        const allResources: Resource[] = [];
+        const allChannels: string[] = [];
+        const allPeople: string[] = [];
+
+        selectedInterests.forEach((interest) => {
+          const catalog = RESOURCES_CATALOG[interest];
+          allResources.push(...catalog.resources.slice(0, 1));
+          allChannels.push(...catalog.channels.slice(0, 1));
+          allPeople.push(...catalog.people.slice(0, 1));
+        });
+
+        resources = allResources.slice(0, 3);
+        channels = [...new Set(allChannels)].slice(0, 3);
+        people = [...new Set(allPeople)].slice(0, 3);
+      }
+
+      const starterKit = { profile, resources, channels, people };
 
       // Save to store
       setProfile(profile);
       setStarterKit(starterKit);
-      
+
       setIsSubmitted(true);
     } catch (error) {
       toast({
@@ -88,18 +136,18 @@ export default function Welcome() {
 
   const handleGoToDiscord = () => {
     const state = useStore.getState();
-    
+
     if (state.profile) {
-      // Generate and post intro message
+      // Generate and post intro message (use bio we set, which may be AI)
       const introMessage = generateIntroMessage(
         state.profile.name,
         state.profile.role,
         state.profile.interests,
         state.profile.bio
       );
-      
-      postMessage('introductions', introMessage);
-      
+
+      postMessage("introductions", introMessage);
+
       toast({
         title: "Welcome message posted! 🎉",
         description: "Your introduction has been added to #introductions.",
@@ -107,7 +155,7 @@ export default function Welcome() {
     }
 
     // Navigate to Discord with introductions channel
-    window.location.href = '/discord?c=introductions';
+    window.location.href = "/discord?c=introductions";
   };
 
   if (isSubmitted) {
@@ -139,19 +187,26 @@ export default function Welcome() {
                   PulseBoard
                 </h1>
               </div>
-              
+
               <h2 className="text-2xl font-semibold">
                 👋 Welcome to the AI Collective!
               </h2>
-              
+
               <p className="text-lg text-muted-foreground">
-                Tell us your name, role, and interests — we'll craft your personalized Starter Kit.
+                Tell us your name, role, and interests — we'll craft your
+                personalized Starter Kit.
               </p>
-              
+
               <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <span className="flex items-center gap-1">✅ Top free resources</span>
-                <span className="flex items-center gap-1">✅ Channels to join</span>
-                <span className="flex items-center gap-1">✅ People to connect with</span>
+                <span className="flex items-center gap-1">
+                  ✅ Top free resources
+                </span>
+                <span className="flex items-center gap-1">
+                  ✅ Channels to join
+                </span>
+                <span className="flex items-center gap-1">
+                  ✅ People to connect with
+                </span>
               </div>
             </div>
 
@@ -173,7 +228,10 @@ export default function Welcome() {
               {/* Role */}
               <div className="space-y-2">
                 <Label htmlFor="role">Role *</Label>
-                <Select value={role} onValueChange={(value: Role) => setRole(value)}>
+                <Select
+                  value={role}
+                  onValueChange={(value: Role) => setRole(value)}
+                >
                   <SelectTrigger className="glass-card">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
@@ -200,7 +258,12 @@ export default function Welcome() {
               {/* Submit */}
               <Button
                 type="submit"
-                disabled={isLoading || !name.trim() || !role || selectedInterests.length === 0}
+                disabled={
+                  isLoading ||
+                  !name.trim() ||
+                  !role ||
+                  selectedInterests.length === 0
+                }
                 className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90"
               >
                 {isLoading ? (
