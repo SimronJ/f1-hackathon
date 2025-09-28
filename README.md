@@ -1,9 +1,3 @@
-Of course! Here is a comprehensive README.md file for your "PulseBoard" project, designed to impress the hackathon judges.
-
-You can copy and paste the following markdown into a `README.md` file in your project's root directory.
-
----
-
 # PulseBoard 🚀
 
 **The AI-powered cockpit for community onboarding and real-time engagement.**
