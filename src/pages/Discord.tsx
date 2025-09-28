@@ -37,23 +37,25 @@ export default function Discord() {
 
   const handleAINudge = async () => {
     try {
-      // Only for general channel in this demo
+      const channelId = selectedChannelId || "general";
       const history = messages
-        .filter((m) => m.channelId === "general")
+        .filter((m) => m.channelId === channelId)
         .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
         .slice(-12)
         .map((m) => `${m.author}: ${m.content}`);
       const suggestion = await aiService.lowPulseSuggestion(history);
       if (suggestion) {
-        useStore.getState().postMessage("general", {
+        useStore.getState().postMessage(channelId, {
           id: `nudge-${Date.now()}`,
-          channelId: "general",
+          channelId,
           author: "PulseBot",
           content: suggestion,
           timestamp: new Date(),
           avatar: "⚡",
         });
-        toast({ title: "AI Nudge posted to #general" });
+        toast({
+          title: `AI Nudge posted to #${selectedChannel?.name || channelId}`,
+        });
       }
     } catch (e) {
       toast({ title: "Failed to generate AI nudge", variant: "destructive" });
@@ -85,14 +87,12 @@ export default function Discord() {
                 <Users className="w-4 h-4" />
                 <span>42 members</span>
               </div>
-              {selectedChannelId === "general" && (
-                <button
-                  onClick={handleAINudge}
-                  className="px-3 py-1 rounded text-xs font-medium bg-secondary hover:bg-secondary/80 flex items-center gap-1"
-                >
-                  <Wand2 className="w-3 h-3" /> AI Nudge
-                </button>
-              )}
+              <button
+                onClick={handleAINudge}
+                className="px-3 py-1 rounded text-xs font-medium bg-secondary hover:bg-secondary/80 flex items-center gap-1"
+              >
+                <Wand2 className="w-3 h-3" /> AI Nudge
+              </button>
             </div>
           </div>
         </div>
