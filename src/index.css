@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* PulseBoard Design System - Discord-inspired theme with modern aesthetics */
+
+@layer base {
+  :root {
+    /* Core Discord-inspired palette */
+    --background: 220 13% 18%;
+    --foreground: 220 9% 95%;
+
+    --card: 217 19% 22%;
+    --card-foreground: 220 9% 95%;
+
+    --popover: 217 19% 22%;
+    --popover-foreground: 220 9% 95%;
+
+    /* Primary: Discord purple */
+    --primary: 235 85% 64%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 235 85% 74%;
+
+    /* Secondary: Discord darker purple */
+    --secondary: 223 6% 25%;
+    --secondary-foreground: 220 9% 95%;
+
+    --muted: 223 6% 25%;
+    --muted-foreground: 220 5% 65%;
+
+    --accent: 235 85% 64%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 223 6% 25%;
+    --input: 223 6% 25%;
+    --ring: 235 85% 64%;
+
+    /* Energy colors */
+    --energy-high: 142 76% 36%;
+    --energy-medium: 43 96% 56%;
+    --energy-low: 0 84% 60%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--card) / 0.8));
+    --gradient-energy: linear-gradient(90deg, hsl(var(--energy-high)), hsl(var(--energy-medium)));
+
+    /* Shadows and effects */
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
+    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.12);
+    --backdrop-blur: blur(16px);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Glass morphism card */
+  .glass-card {
+    @apply backdrop-blur-md bg-card/80 border border-border/50;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Energy badges */
+  .energy-high {
+    @apply bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+
+  .energy-medium {
+    @apply bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+  }
+
+  .energy-low {
+    @apply bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+
+  /* Sparkline animation */
+  .sparkline-bar {
+    @apply transition-all duration-300 ease-in-out;
+    background: var(--gradient-energy);
+  }
+
+  /* Pulse animation for notifications */
+  .pulse-glow {
+    animation: pulse-glow 2s infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 8px hsl(var(--primary) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 16px hsl(var(--primary) / 0.6);
+    }
+  }
+
+  /* Message bubble animations */
+  .message-slide-in {
+    animation: slideInFromRight 0.3s ease-out;
+  }
+
+  @keyframes slideInFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
