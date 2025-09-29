@@ -1,3 +1,6 @@
+**We Won The Hackathon**
+![Alt text](image.png)
+
 # PulseBoard 🚀
 
 **The AI-powered cockpit for community onboarding and real-time engagement.**
@@ -6,8 +9,8 @@
 
 ### **▶️ Live Demo & MVP Links**
 
-*   **Loom Demo (2 min):** `[Link to your 2-minute Loom video]`
-*   **Live MVP Link:** `[Link to your deployed PulseBoard microsite]`
+*   **Loom Demo (2 min):** `https://www.loom.com/share/9f0f89f4f86f4a20907bdf0ba2700bda`
+*   **Live MVP Link:** `https://pluseboard-tawny.vercel.app/`
 
 ---
 
